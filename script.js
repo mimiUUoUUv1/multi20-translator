@@ -132,8 +132,8 @@ function addStep(cycle, direction, from, to, text) {
 }
 
 function apiEndpoint() {
-  const raw = els.apiUrl.value.trim().replace(/\/+$/, "");
-  return `${raw}/translate`;
+  // Google Cloud Translation - Basic v2 の正しいエンドポイント
+  return "https://translation.googleapis.com/language/translate/v2";
 }
 
 async function translateText(text, source, target) {
@@ -144,10 +144,7 @@ async function translateText(text, source, target) {
     throw new Error("Google APIキーを入力してください。");
   }
 
-  const endpoint = els.apiUrl.value.trim() ||
-    "https://translation.googleapis.com/language/translate/v2";
-
-  const url = `${endpoint}?key=${encodeURIComponent(apiKey)}`;
+  const url = `${apiEndpoint()}?key=${encodeURIComponent(apiKey)}`;
 
   const body = {
     q: text,
@@ -156,38 +153,46 @@ async function translateText(text, source, target) {
     format: "text"
   };
 
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json; charset=utf-8"
-    },
-    body: JSON.stringify(body)
-  });
-
-  let data = null;
   try {
-    data = await response.json();
-  } catch {
-    throw new Error(`Google APIからJSONを取得できませんでした (HTTP ${response.status})`);
-  }
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json; charset=utf-8"
+      },
+      body: JSON.stringify(body)
+    });
 
-  if (!response.ok) {
-    const message =
-      data?.error?.message ||
-      data?.error?.status ||
-      `HTTP ${response.status}`;
-    throw new Error(message);
-  }
+    let data = null;
+    try {
+      data = await response.json();
+    } catch {
+      throw new Error(`Google APIからJSONを取得できませんでした (HTTP ${response.status})`);
+    }
 
-  const translated = data?.data?.translations?.[0]?.translatedText;
-  if (typeof translated !== "string") {
-    throw new Error("Google APIからtranslatedTextが返されませんでした。");
-  }
+    if (!response.ok) {
+      const message =
+        data?.error?.message ||
+        data?.error?.status ||
+        `HTTP ${response.status}`;
+      throw new Error(message);
+    }
 
-  // Google API may return HTML entities in translatedText.
-  const decoder = document.createElement("textarea");
-  decoder.innerHTML = translated;
-  return decoder.value;
+    const translated = data?.data?.translations?.[0]?.translatedText;
+    if (typeof translated !== "string") {
+      throw new Error("Google APIからtranslatedTextが返されませんでした。");
+    }
+
+    const decoder = document.createElement("textarea");
+    decoder.innerHTML = translated;
+    return decoder.value;
+  } catch (error) {
+    if (error instanceof TypeError && error.message === "Failed to fetch") {
+      throw new Error(
+        "Google APIへの接続がCORSでブロックされました。Google APIへブラウザから直接接続できない環境では、Cloudflare Workers等の中継サーバーが必要です。"
+      );
+    }
+    throw error;
+  }
 }
 
 async function run() {

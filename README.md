@@ -60,3 +60,12 @@ https://docs.github.com/en/pages/quickstart
 - `style.css` : デザイン
 - `script.js` : 20言語往復翻訳ロジック
 - `README.md` : 設定・公開方法
+
+
+## CORSについて
+
+Google公式のv2エンドポイントは `https://translation.googleapis.com/language/translate/v2` です。
+`/v2/translate` は誤りです。
+
+ブラウザからGoogle APIへ直接アクセスしてCORSエラーが出る場合は、GitHub Pagesだけでは回避できません。
+その場合は、Cloudflare Workersなどのバックエンドを中継として使用し、Google APIキーをWorker側のSecretに保存する構成にしてください。
