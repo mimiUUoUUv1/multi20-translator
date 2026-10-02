@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <title>Multi20 Back Translator</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">20-LANGUAGE BACK TRANSLATOR</div>
+      <h1>Multi20 <span>逆翻訳</span></h1>
+      <p>20言語を順番に通し、最後に逆順で戻して変化を確認します。</p>
+    </div>
+    <button id="themeBtn" class="ghost">☾ テーマ</button>
+  </header>
+
+  <main class="wrap">
+    <section class="card">
+      <div class="row title-row">
+        <div>
+          <h2>1. 原文</h2>
+          <p class="muted">原文の言語を指定してください。</p>
+        </div>
+        <div class="inline">
+          <label for="sourceLang">原文</label>
+          <select id="sourceLang"></select>
+        </div>
+      </div>
+
+      <textarea id="sourceText" maxlength="3000"
+        placeholder="例：今日はとてもいい天気ですね。"></textarea>
+
+      <div class="controls">
+        <div class="control">
+          <label for="cycles">往復回数</label>
+          <input id="cycles" type="number" min="1" max="5" value="1">
+          <span class="hint">1回 = 20言語往路 + 20言語復路</span>
+        </div>
+        <div class="control grow">
+          <label for="apiUrl">翻訳API</label>
+          <input id="apiUrl" value="https://libretranslate.com" spellcheck="false">
+          <span class="hint">GitHub PagesはAPIを提供しないため、LibreTranslate等の外部APIを使用します。</span>
+        </div>
+        <div class="control">
+          <label for="apiKey">APIキー（任意）</label>
+          <input id="apiKey" type="password" placeholder="必要な場合のみ">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="row title-row">
+        <div>
+          <h2>2. 20言語ルート</h2>
+          <p class="muted">ドラッグは不要。チェックした順番で実行されます。</p>
+        </div>
+        <div class="route-actions">
+          <button id="defaultBtn" class="secondary">標準20言語</button>
+          <button id="clearBtn" class="ghost">全解除</button>
+        </div>
+      </div>
+      <div id="langGrid" class="lang-grid"></div>
+      <div id="selectedRoute" class="route-preview"></div>
+    </section>
+
+    <section class="actions">
+      <button id="runBtn" class="primary">▶ 逆翻訳を開始</button>
+      <button id="stopBtn" class="danger" disabled>■ 停止</button>
+      <button id="copyBtn" class="secondary">最終結果をコピー</button>
+      <button id="downloadBtn" class="secondary">結果を保存</button>
+    </section>
+
+    <section class="card status-card">
+      <div class="row">
+        <div>
+          <h2>3. 実行状況</h2>
+          <div id="statusText" class="status">待機中</div>
+        </div>
+        <div id="progressText" class="progress-text">0 / 40</div>
+      </div>
+      <div class="progress"><div id="progressBar"></div></div>
+      <div id="notice" class="notice hidden"></div>
+    </section>
+
+    <section class="card">
+      <div class="row title-row">
+        <div>
+          <h2>4. 翻訳履歴</h2>
+          <p class="muted">各ステップの文章を確認できます。</p>
+        </div>
+        <button id="collapseBtn" class="ghost">折りたたむ</button>
+      </div>
+      <div id="history" class="history"></div>
+    </section>
+
+    <section class="card final-card">
+      <div class="row title-row">
+        <div>
+          <h2>最終結果</h2>
+          <p class="muted">最後に原文言語へ逆翻訳した文章です。</p>
+        </div>
+        <span id="resultBadge" class="badge">未実行</span>
+      </div>
+      <textarea id="finalText" readonly placeholder="ここに最終結果が表示されます。"></textarea>
+    </section>
+
+    <footer>
+      <span>静的サイト：GitHub Pages向け</span>
+      <span>Translation engine: LibreTranslate API</span>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
