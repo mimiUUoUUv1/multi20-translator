@@ -31,7 +31,6 @@ const els = {
   sourceText: document.querySelector("#sourceText"),
   cycles: document.querySelector("#cycles"),
   apiUrl: document.querySelector("#apiUrl"),
-  apiKey: document.querySelector("#apiKey"),
   langGrid: document.querySelector("#langGrid"),
   selectedRoute: document.querySelector("#selectedRoute"),
   runBtn: document.querySelector("#runBtn"),
@@ -132,19 +131,21 @@ function addStep(cycle, direction, from, to, text) {
 }
 
 function apiEndpoint() {
-  // Google Cloud Translation - Basic v2 の正しいエンドポイント
-  return "https://translation.googleapis.com/language/translate/v2";
+  const input = els.apiUrl?.value?.trim();
+  if (input) {
+    localStorage.setItem("multi20-worker-url", input);
+    return input;
+  }
+  return localStorage.getItem("multi20-worker-url")?.trim() || "";
 }
 
 async function translateText(text, source, target) {
   if (source === target) return text;
 
-  const apiKey = els.apiKey.value.trim();
-  if (!apiKey) {
-    throw new Error("Google APIキーを入力してください。");
+  const workerUrl = apiEndpoint();
+  if (!workerUrl) {
+    throw new Error("Cloudflare Worker URLを設定してください。");
   }
-
-  const url = `${apiEndpoint()}?key=${encodeURIComponent(apiKey)}`;
 
   const body = {
     q: text,
@@ -153,46 +154,41 @@ async function translateText(text, source, target) {
     format: "text"
   };
 
+  let response;
   try {
-    const response = await fetch(url, {
+    response = await fetch(workerUrl, {
       method: "POST",
       headers: {
-        "Content-Type": "application/json; charset=utf-8"
+        "Content-Type": "application/json"
       },
       body: JSON.stringify(body)
     });
-
-    let data = null;
-    try {
-      data = await response.json();
-    } catch {
-      throw new Error(`Google APIからJSONを取得できませんでした (HTTP ${response.status})`);
-    }
-
-    if (!response.ok) {
-      const message =
-        data?.error?.message ||
-        data?.error?.status ||
-        `HTTP ${response.status}`;
-      throw new Error(message);
-    }
-
-    const translated = data?.data?.translations?.[0]?.translatedText;
-    if (typeof translated !== "string") {
-      throw new Error("Google APIからtranslatedTextが返されませんでした。");
-    }
-
-    const decoder = document.createElement("textarea");
-    decoder.innerHTML = translated;
-    return decoder.value;
   } catch (error) {
-    if (error instanceof TypeError && error.message === "Failed to fetch") {
-      throw new Error(
-        "Google APIへの接続がCORSでブロックされました。Google APIへブラウザから直接接続できない環境では、Cloudflare Workers等の中継サーバーが必要です。"
-      );
+    if (error instanceof TypeError) {
+      throw new Error("Cloudflare Workerへ接続できません。Worker URL、CORS設定、Workerの公開状態を確認してください。");
     }
     throw error;
   }
+
+  let data = null;
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(`WorkerからJSONを取得できませんでした (HTTP ${response.status})`);
+  }
+
+  if (!response.ok) {
+    throw new Error(data?.error || data?.message || `Worker HTTP ${response.status}`);
+  }
+
+  const translated = data?.data?.translations?.[0]?.translatedText;
+  if (typeof translated !== "string") {
+    throw new Error("WorkerからtranslatedTextが返されませんでした。");
+  }
+
+  const decoder = document.createElement("textarea");
+  decoder.innerHTML = translated;
+  return decoder.value;
 }
 
 async function run() {
