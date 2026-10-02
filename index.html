@@ -41,11 +41,11 @@
         </div>
         <div class="control grow">
           <label for="apiUrl">翻訳API</label>
-          <input id="apiUrl" value="https://libretranslate.com" spellcheck="false">
-          <span class="hint">GitHub PagesはAPIを提供しないため、LibreTranslate等の外部APIを使用します。</span>
+          <input id="apiUrl" value="https://translation.googleapis.com/language/translate/v2" spellcheck="false" readonly>
+          <span class="hint">Google Cloud Translation - Basic (v2) のエンドポイントです。</span>
         </div>
         <div class="control">
-          <label for="apiKey">APIキー（任意）</label>
+          <label for="apiKey">Google APIキー</label>
           <input id="apiKey" type="password" placeholder="必要な場合のみ">
         </div>
       </div>
@@ -67,7 +67,7 @@
     </section>
 
     <section class="actions">
-      <button id="runBtn" class="primary">▶ 逆翻訳を開始</button>
+      <button id="runBtn" class="primary">▶ Google APIで逆翻訳を開始</button>
       <button id="stopBtn" class="danger" disabled>■ 停止</button>
       <button id="copyBtn" class="secondary">最終結果をコピー</button>
       <button id="downloadBtn" class="secondary">結果を保存</button>

@@ -1,5 +1,7 @@
 # Multi20 Back Translator
 
+Google Cloud Translation - Basic (v2) 対応版
+
 GitHub Pages向けの静的な「20言語・往復逆翻訳」サイトです。
 
 ## 動作
@@ -11,12 +13,23 @@ GitHub Pages向けの静的な「20言語・往復逆翻訳」サイトです。
 
 「往復回数」を2以上にすると、この往復を繰り返します。
 
-## 翻訳API
+## Google Translation API
 
-このサイトはブラウザから翻訳APIへ `POST /translate` を送ります。
-初期設定は `https://libretranslate.com` です。APIキーが必要な場合は画面から入力できます。
+この版は Google Cloud Translation - Basic (v2) を使用します。
+公式のRESTエンドポイントは `https://translation.googleapis.com/language/translate/v2` です。
+リクエストには `q`, `source`, `target`, `format` を指定し、APIキーを `?key=...` で渡します。
 
 画面上では21言語を候補として用意し、原文と同じ言語を除いた20言語を初期ルートにします。
+
+### APIキーについて
+
+Google APIキーは画面の「Google APIキー」欄に入力してください。
+このサンプルはキーをHTMLやJavaScriptへ固定していません。
+
+公開サイトで同じAPIキーを全員に使わせるために `script.js` へキーを書き込む方法は、キーが閲覧者に見えるため推奨しません。
+Google Cloud側でAPIキーの利用制限を設定してください。
+
+Cloud Translation - Basic (v2) はAPIキーをサポートしています。
 
 LibreTranslateの公式ドキュメントでは、`/translate` に `q`, `source`, `target`, `format`, `api_key` などを送る方式が案内されています。
 公式:
@@ -29,7 +42,7 @@ GitHub Pagesは静的ホスティングなので、秘密のAPIキーを安全�
 公開サイトとして運用するなら、APIキーをフロントエンドに固定せず、自分で管理するバックエンド/プロキシを用意する構成を推奨します。
 
 また、1回の往復で20言語を往路＋20言語を復路するため、40回の翻訳リクエストが発生します。
-API側のレート制限・文字数制限・料金を確認してください。
+Google Cloudの料金・割り当て・制限を確認してください。
 
 ## GitHub Pages公開
 

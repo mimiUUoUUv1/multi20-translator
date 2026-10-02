@@ -139,34 +139,55 @@ function apiEndpoint() {
 async function translateText(text, source, target) {
   if (source === target) return text;
 
+  const apiKey = els.apiKey.value.trim();
+  if (!apiKey) {
+    throw new Error("Google APIキーを入力してください。");
+  }
+
+  const endpoint = els.apiUrl.value.trim() ||
+    "https://translation.googleapis.com/language/translate/v2";
+
+  const url = `${endpoint}?key=${encodeURIComponent(apiKey)}`;
+
   const body = {
     q: text,
     source,
     target,
     format: "text"
   };
-  const key = els.apiKey.value.trim();
-  if (key) body.api_key = key;
 
-  const response = await fetch(apiEndpoint(), {
+  const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json; charset=utf-8"
+    },
     body: JSON.stringify(body)
   });
 
   let data = null;
-  try { data = await response.json(); } catch {}
+  try {
+    data = await response.json();
+  } catch {
+    throw new Error(`Google APIからJSONを取得できませんでした (HTTP ${response.status})`);
+  }
 
   if (!response.ok) {
-    const msg = data?.error || `HTTP ${response.status}`;
-    throw new Error(msg);
+    const message =
+      data?.error?.message ||
+      data?.error?.status ||
+      `HTTP ${response.status}`;
+    throw new Error(message);
   }
-  if (!data?.translatedText) {
-    throw new Error("翻訳APIからtranslatedTextが返りませんでした。");
+
+  const translated = data?.data?.translations?.[0]?.translatedText;
+  if (typeof translated !== "string") {
+    throw new Error("Google APIからtranslatedTextが返されませんでした。");
   }
-  return Array.isArray(data.translatedText)
-    ? data.translatedText.join("\n")
-    : data.translatedText;
+
+  // Google API may return HTML entities in translatedText.
+  const decoder = document.createElement("textarea");
+  decoder.innerHTML = translated;
+  return decoder.value;
 }
 
 async function run() {
